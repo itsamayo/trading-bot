@@ -4,4 +4,4 @@ numpy
 sklearn
 matplotlib
 python-dotenv
-alpaca-py
+alpaca_trade_api
