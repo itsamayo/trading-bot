@@ -83,10 +83,10 @@ signal = make_trade_decision(latest_data, clf)
 last_price = data['close'].iloc[-1]
 if signal == 'buy':
     # Place a buy order for the stock    
-    print(f'Potential to place a BUY order at ${last_price:.2f} for', os.getenv('STOCK_SYMBOL'))
+    print(f'BUY order potential at ${last_price:.2f} for', os.getenv('STOCK_SYMBOL'))
 elif signal == 'sell':
     # Place a sell order for the stock
-    print(f'Potential to place a SELL order at ${last_price:.2f} for', os.getenv('STOCK_SYMBOL'))
+    print(f'SELL order potential at ${last_price:.2f} for', os.getenv('STOCK_SYMBOL'))
 else:
     # Do nothing
     print('Nothing to execute')
