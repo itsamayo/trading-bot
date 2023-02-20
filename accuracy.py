@@ -14,7 +14,7 @@ load_dotenv()
 url = 'https://www.alphavantage.co/query'
 params = {
     'function': 'TIME_SERIES_DAILY_ADJUSTED',
-    'symbol': 'ABBV',
+    'symbol': os.getenv('STOCK_SYMBOL'),
     'outputsize': 'full',
     'datatype': 'csv',
     'apikey': os.getenv('ALPHA_VANTAGE_API_KEY')
