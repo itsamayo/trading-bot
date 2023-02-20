@@ -4,4 +4,4 @@ numpy
 sklearn
 matplotlib
 python-dotenv
-discord.py
+alpaca-py

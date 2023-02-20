@@ -4,6 +4,7 @@ import requests
 import io
 import os
 import json
+import alpaca_trade_api as tradeapi
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -13,18 +14,31 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# set up your API credentials
+API_KEY = os.getenv('ALPACA_API_KEY')
+SECRET_KEY = os.getenv('ALPACA_SECRET')
+BASE_URL = os.getenv('ALPACA_ENDPOINT')
+STOCK_SYMBOL = os.getenv('STOCK_SYMBOL')
+
+# defined discord things
+WEBHOOK_URL = os.getenv('DISCORD_WEBHOOK')
+HEADERS = {'Content-type': 'application/json'}
+
+# connect to the Alpaca API
+api = tradeapi.REST(API_KEY, SECRET_KEY, BASE_URL, api_version='v2')
+
 # define the API URL and parameters
-url = 'https://www.alphavantage.co/query'
-params = {
+URL = 'https://www.alphavantage.co/query'
+PARAMS = {
     'function': 'TIME_SERIES_DAILY_ADJUSTED',
-    'symbol': os.getenv('STOCK_SYMBOL'),
+    'symbol': STOCK_SYMBOL,
     'outputsize': 'full',
     'datatype': 'csv',
     'apikey': os.getenv('ALPHA_VANTAGE_API_KEY')
 }
 
 # send a GET request to the API
-response = requests.get(url, params=params)
+response = requests.get(URL, params=PARAMS)
 
 # create a Pandas DataFrame from the CSV response
 data = pd.read_csv(io.BytesIO(response.content), parse_dates=['timestamp'])
@@ -94,8 +108,7 @@ def define_accuracy(data):
 # Define a function to make trading decisions
 def make_trade_decision(data, model):
     # Clean up the data
-    data = data.round(5)
-   # data.drop(columns=['adjusted_close', 'volume', 'dividend_amount', 'split_coefficient'], inplace=True)
+    data = data.round(5)   
     data.dropna(inplace=True)
     
     # Select features
@@ -109,7 +122,34 @@ def make_trade_decision(data, model):
         return 'buy'
     else:
         return 'sell'
-
+    
+# discord message sender
+def send_discord_message(msg):
+    message = {
+            'content': msg
+        }
+    requests.post(WEBHOOK_URL, headers=HEADERS, data=json.dumps(message))
+    
+# place a market buy/sell order
+def place_trade_order(side_type):
+    discord_message_subj = 'BOUGHT' if side_type == 'buy' else 'SOLD'
+    try:
+        symbol = STOCK_SYMBOL
+        qty = 1
+        order_type = 'market'
+        side = side_type
+        resp = api.submit_order(
+            symbol=symbol,
+            qty=qty,
+            side=side,
+            type=order_type,
+            time_in_force='gtc'
+        )        
+        send_discord_message(f'**{discord_message_subj}** {STOCK_SYMBOL} stock at ${last_price:.2f}')
+        print(resp)
+    except:            
+        send_discord_message(f'**FAILED** {side_type} - check logs for details')
+    
 # Get the latest data
 latest_data = data.iloc[-1:].copy()
 
@@ -117,25 +157,17 @@ latest_data = data.iloc[-1:].copy()
 signal = make_trade_decision(latest_data, clf)
 
 # Send a message about a decision
-webhook_url = os.getenv('DISCORD_WEBHOOK')
-headers = {'Content-type': 'application/json'}
 last_price = data['close'].iloc[-1]
 if signal == 'buy':
     # Place a buy order for the stock    
-    accuracy = define_accuracy(data)
-    print(f'BUY order potential at ${last_price:.2f} for', os.getenv('STOCK_SYMBOL'))    
-    message = {
-        'content': f'**BUY**: Latest ABBV stock price: ${last_price:.2f} *(buy prediction accuracy: {accuracy:.2f})*'
-    }
-    requests.post(webhook_url, headers=headers, data=json.dumps(message))
+    accuracy = define_accuracy(data)    
+    send_discord_message(f'**BUY**: Latest {STOCK_SYMBOL} stock price: ${last_price:.2f} *(buy prediction accuracy: {accuracy:.2f})*')
+    place_trade_order(signal)
 elif signal == 'sell':
     # Place a sell order for the stock
     accuracy = define_accuracy(data)
-    print(f'SELL order potential at ${last_price:.2f} for', os.getenv('STOCK_SYMBOL'))
-    message = {
-        'content': f'**SELL**: Latest ABBV stock price: ${last_price:.2f} *(sell prediction accuracy: {accuracy:.2f})*'
-    }
-    requests.post(webhook_url, headers=headers, data=json.dumps(message))
+    send_discord_message(f'**SELL**: Latest {STOCK_SYMBOL} stock price: ${last_price:.2f} *(sell prediction accuracy: {accuracy:.2f})*')    
+    place_trade_order(signal)
 else:
     # Do nothing (not sure this should ever get here)
-    print('Nothing to execute')
+    send_discord_message(f'**OOPS**: not sure how we got here but this should never happen')
