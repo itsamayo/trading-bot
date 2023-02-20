@@ -3,3 +3,4 @@ requests
 numpy
 sklearn
 matplotlib
+dotenv
