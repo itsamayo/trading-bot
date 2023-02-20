@@ -67,8 +67,6 @@ def make_trade_decision(data, model):
     # Apply the trained model
     prediction = model.predict(data)
     
-    print(prediction)
-
     # Return a trading signal based on the prediction
     if prediction == 1:
         return 'buy'
@@ -82,12 +80,13 @@ latest_data = data.iloc[-1:].copy()
 signal = make_trade_decision(latest_data, clf)
 
 # Place a trade based on the trading signal
+last_price = data['close'].iloc[-1]
 if signal == 'buy':
-    # Place a buy order for the stock
-    print('Placed a buy order')
+    # Place a buy order for the stock    
+    print(f'Potential to place a BUY order at ${last_price:.2f} for', os.getenv('STOCK_SYMBOL'))
 elif signal == 'sell':
     # Place a sell order for the stock
-    print('Placed a sell order')
+    print(f'Potential to place a SELL order at ${last_price:.2f} for', os.getenv('STOCK_SYMBOL'))
 else:
     # Do nothing
-    print('No trade executed')
+    print('Nothing to execute')
