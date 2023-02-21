@@ -18,6 +18,9 @@ Install dependencies
 $ pip install -r requirements.txt
 ```
 Configure a `.env` file by using the `.example_env` file and replacing all values with your own
+1. You will need to create an Alpha Advantage account to get an API key
+2. You will need to create an Alpaca account to get an API key and Secret
+3. You will need a discord server that you can create webhooks for
 ```
 $ cp .example.env .env
 ```
