@@ -189,7 +189,7 @@ def place_trade_order(signal, last_price):
                 type='market',
                 time_in_force='gtc'
             )
-            send_discord_message(f'**{discord_message_subj}** {qty} {STOCK_SYMBOL} share/s at ${last_price:.2f}')
+            send_discord_message(f'**{discord_message_subj}** {qty} {STOCK_SYMBOL} share/s at +-${last_price:.2f}')
         except:            
             send_discord_message(f':sob: **FAILED**{signal}: Check logs for details')
     else:
@@ -206,14 +206,15 @@ def run_trader_bot():
 
     if accuracy_perc > int(ACCURACY_THRESHOLD):
         # send a message about a decision
-        last_price = data['close'].iloc[-1]
+        last_price_raw = api.get_latest_quote(STOCK_SYMBOL)
+        last_price = last_price_raw.ap
         if signal == 'buy':
             # attempt tp place a buy order for the stock        
-            send_discord_message(f':green_circle:  **BUY**: Latest {STOCK_SYMBOL} stock price: ${last_price:.2f}')        
+            send_discord_message(f':green_circle:  **BUY**: Latest {STOCK_SYMBOL} stock price: +-${last_price:.2f}')        
             place_trade_order(signal, last_price)
         elif signal == 'sell':
             # attempt to place a sell order for the stock        
-            send_discord_message(f':red_circle:  **SELL**: Latest {STOCK_SYMBOL} stock price: ${last_price:.2f}')
+            send_discord_message(f':red_circle:  **SELL**: Latest {STOCK_SYMBOL} stock price: +-${last_price:.2f}')
             place_trade_order(signal, last_price)
         else:
             # do nothing -- we should never get here
