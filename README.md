@@ -28,3 +28,6 @@ Run the bot
 ```
 $ python main.py
 ```
+## Continuous Deployment
+This project is configured to deploy the bot to the configured server and send a message to the configured Discord webhook via Github Actions
+*note* - this requires configuring the necessary secrets in the repo
