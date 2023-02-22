@@ -1,0 +1,24 @@
+name: Deploy Trading Bot
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+      
+    - name: SSH into Server and Git Pull
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST_IP }}
+        username: ${{ secrets.HOST_USERNAME }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }} # replace this with your private SSH key stored as a GitHub secret
+        port: 22
+        script: |
+          cd dev/trading-bot/
+          git pull
