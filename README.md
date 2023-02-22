@@ -10,7 +10,7 @@ A simple trading bot, that makes use of:
 - Orders are only placed if the prediciton accuracy has a confidence level above the specified percentage (configured in the .env file)
 - On bot run, messages are sent to a specified discord webhook (configured in the .env file)
 
-## Set up
+## Usage
 Requires at least Python 3.7
 
 Install dependencies
