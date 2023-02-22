@@ -34,16 +34,16 @@ jobs:
           git pull
     
     - name: Send Discord notification on success
-        if: success()
-        uses: ashleygwilliams/http-requests@v3
-        with:
-          method: POST
-          url: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          headers: |
-            {
-              "Content-type": "application/json"
-            }
-          data: |
-            {
-              "content": "Trading bot deployed successfully!"
-            }
+      if: success()
+      uses: ashleygwilliams/http-requests@v3
+      with:
+        method: POST
+        url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        headers: |
+          {
+            "Content-type": "application/json"
+          }
+        data: |
+          {
+            "content": "Trading bot deployed successfully!"
+          }
