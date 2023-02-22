@@ -11,16 +11,6 @@ jobs:
     steps:
     - name: Checkout Code
       uses: actions/checkout@v2
-
-    - name: Set up Python environment
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
-
-    - name: Install dependencies
-      run: |
-        pip install --upgrade pip
-        pip install -r requirements.txt
       
     - name: SSH into Server and Git Pull
       uses: appleboy/ssh-action@master
@@ -35,15 +25,7 @@ jobs:
     
     - name: Send Discord notification on success
       if: success()
-      uses: ashleygwilliams/http-requests@v3
-      with:
-        method: POST
-        url: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        headers: |
-          {
-            "Content-type": "application/json"
-          }
-        data: |
-          {
-            "content": "Trading bot deployed successfully!"
-          }
+      env:
+        DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      run: |
+        curl -H "Content-Type: application/json" -d "{\"content\":\":rocket: bot was updated and deployed successfully!\"}" $DISCORD_WEBHOOK_URL
