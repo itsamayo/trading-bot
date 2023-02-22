@@ -8,6 +8,7 @@ API_KEY = os.getenv('ALPACA_API_KEY')
 SECRET_KEY = os.getenv('ALPACA_SECRET')
 BASE_URL = os.getenv('ALPACA_ENDPOINT')
 STOCK_SYMBOL = os.getenv('STOCK_SYMBOL')
+BUYING_POWER_DIVIDER = int(os.getenv('BUYING_POWER_DIVIDER'))
 
 # connect to the Alpaca API
 api = tradeapi.REST(API_KEY, SECRET_KEY, BASE_URL, api_version='v2')
@@ -30,8 +31,10 @@ def get_last_price():
 
 # place a market buy/sell order
 def place_trade_order(signal, last_price):
-    discord_message_subj = ':money_with_wings: BOUGHT' if signal == 'buy' else ':moneybag: SOLD'    
-    qty = 0    
+    # initialize order quanity at 0    
+    qty = 0
+
+    # get alpaca account info
     account = api.get_account()
 
     # exit early if trading is blocked on the account
@@ -39,13 +42,15 @@ def place_trade_order(signal, last_price):
         send_discord_message(f'**BLOCKED**: Trading is currently unavailable')
         return
     
-    # exit early if half of buying power wouldn't be enough to buy a single share
-    if float(account.buying_power)/2 < last_price:
+    # exit early if desired amount of buying power wouldn't be enough to buy a single share
+    if float(account.buying_power)/BUYING_POWER_DIVIDER < last_price:
         send_discord_message(f':skull_crossbones: **BROKE ASS**: Not enough buying power to satisfy rules')
+        return
 
     # get a list of all of our positions
     shares_held_currently = get_current_position()
 
+    # set order quantity
     # for sell orders, we want to sell all owned shares, if no shares are owned exit early and alert
     if signal == 'sell':
         qty = shares_held_currently
@@ -54,9 +59,9 @@ def place_trade_order(signal, last_price):
             return
     else:
         # for buy orders we want to buy for no more than half of what our current buying power allows
-        qty = int((float(account.buying_power)/2)/float(151.38))
+        qty = int((float(account.buying_power)/BUYING_POWER_DIVIDER)/float(151.38))
     
-    # either buy or sell based on signal
+    # make a buy or sell order based on signal
     try:
         send_discord_message(f':rocket: Currently holding {shares_held_currently} {STOCK_SYMBOL} share/s')
         api.submit_order(
@@ -66,6 +71,7 @@ def place_trade_order(signal, last_price):
             type='market',
             time_in_force='gtc'
         )
+        discord_message_subj = ':money_with_wings: BOUGHT' if signal == 'buy' else ':moneybag: SOLD'
         send_discord_message(f'**{discord_message_subj}** {qty} {STOCK_SYMBOL} share/s at +-${last_price:.2f}')
     except:            
         send_discord_message(f':sob: **FAILED**{signal}: Check logs for details')
