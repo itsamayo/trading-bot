@@ -26,5 +26,5 @@ $ cp .example.env .env
 ```
 Run the bot
 ```
-$ python bot.py
+$ python main.py
 ```
