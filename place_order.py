@@ -43,29 +43,29 @@ def place_trade_order(signal, last_price):
     if float(account.buying_power)/2 < last_price:
         send_discord_message(f':skull_crossbones: **BROKE ASS**: Not enough buying power to satisfy rules')
 
-    # get a list of all of our positions to set shares_held_currently
+    # get a list of all of our positions
     shares_held_currently = get_current_position()
 
-    # for sell orders, we want to sell all owned shares, for buys we set that in the env variables
+    # for sell orders, we want to sell all owned shares, if no shares are owned exit early and alert
     if signal == 'sell':
         qty = shares_held_currently
+        if qty == 0:
+            send_discord_message(f':pinching_hand: **NO POSITIONS**: Can\'t sell what you don\'t have')
+            return
     else:
         # for buy orders we want to buy for no more than half of what our current buying power allows
         qty = int((float(account.buying_power)/2)/float(151.38))
     
-    if qty > 0:
-        try:
-            send_discord_message(f':rocket: Currently holding {shares_held_currently} {STOCK_SYMBOL} share/s')
-            api.submit_order(
-                symbol=STOCK_SYMBOL,
-                qty=qty,
-                side=signal,
-                type='market',
-                time_in_force='gtc'
-            )
-            send_discord_message(f'**{discord_message_subj}** {qty} {STOCK_SYMBOL} share/s at +-${last_price:.2f}')
-        except:            
-            send_discord_message(f':sob: **FAILED**{signal}: Check logs for details')
-    else:
-        if signal == 'sell':
-            send_discord_message(f':pinching_hand: **NO POSITIONS**: Can\'t sell what you don\'t have')
+    # either buy or sell based on signal
+    try:
+        send_discord_message(f':rocket: Currently holding {shares_held_currently} {STOCK_SYMBOL} share/s')
+        api.submit_order(
+            symbol=STOCK_SYMBOL,
+            qty=qty,
+            side=signal,
+            type='market',
+            time_in_force='gtc'
+        )
+        send_discord_message(f'**{discord_message_subj}** {qty} {STOCK_SYMBOL} share/s at +-${last_price:.2f}')
+    except:            
+        send_discord_message(f':sob: **FAILED**{signal}: Check logs for details')
