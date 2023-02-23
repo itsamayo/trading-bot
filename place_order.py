@@ -42,10 +42,11 @@ def place_trade_order(signal, last_price):
         send_discord_message(f'**BLOCKED**: Trading is currently unavailable')
         return
     
-    # exit early if desired amount of buying power wouldn't be enough to buy a single share
-    if float(account.buying_power)/BUYING_POWER_DIVIDER < last_price:
-        send_discord_message(f':skull_crossbones: **BROKE ASS**: Not enough buying power to satisfy rules')
-        return
+    # exit early if desired amount of buying power wouldn't be enough to buy a single share when signal is buy
+    if signal == 'buy':
+        if float(account.buying_power)/BUYING_POWER_DIVIDER < last_price:
+            send_discord_message(f':skull_crossbones: **BROKE ASS**: Not enough buying power to satisfy rules')
+            return
 
     # get a list of all of our positions
     shares_held_currently = get_current_position()
@@ -53,7 +54,7 @@ def place_trade_order(signal, last_price):
     # set order quantity
     # for sell orders, we want to sell all owned shares, if no shares are owned exit early and alert
     if signal == 'sell':
-        qty = shares_held_currently
+        qty = shares_held_currently        
         if qty == 0:
             send_discord_message(f':pinching_hand: **NO POSITIONS**: Can\'t sell what you don\'t have')
             return
@@ -63,7 +64,7 @@ def place_trade_order(signal, last_price):
     
     # make a buy or sell order based on signal
     try:
-        send_discord_message(f':rocket: Currently holding {shares_held_currently} {STOCK_SYMBOL} share/s')
+        send_discord_message(f':rocket: Currently holding {shares_held_currently} {STOCK_SYMBOL} share/s')        
         api.submit_order(
             symbol=STOCK_SYMBOL,
             qty=qty,
