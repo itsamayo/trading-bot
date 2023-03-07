@@ -122,13 +122,16 @@ def main():
     # decide if we want to exit early based on accuracy or continue on to attempt a trade
     if accuracy_perc > int(ACCURACY_THRESHOLD):            
         last_price = get_last_price()
+        if last_price == 0:
+            send_discord_message(f':x: **UNAVAILABLE**: Looks like the market is either closed or **{STOCK_SYMBOL}** is not available right now')
+            return
         if signal == 'buy':
             # attempt to place a buy order for the stock        
-            send_discord_message(f':green_circle:  **BUY**: Latest {STOCK_SYMBOL} stock price: +-${last_price:.2f}')        
+            send_discord_message(f':green_circle:  **BUY**: Latest **{STOCK_SYMBOL}** stock price: +-${last_price:.2f}')        
             place_trade_order(signal, last_price)
         elif signal == 'sell':
             # attempt to place a sell order for the stock        
-            send_discord_message(f':red_circle:  **SELL**: Latest {STOCK_SYMBOL} stock price: +-${last_price:.2f}')
+            send_discord_message(f':red_circle:  **SELL**: Latest **{STOCK_SYMBOL}** stock price: +-${last_price:.2f}')
             place_trade_order(signal, last_price)
         else:
             # do nothing -- we should never get here
