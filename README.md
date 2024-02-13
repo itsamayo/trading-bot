@@ -1,4 +1,5 @@
 # Alpaca Trading Bot 💰
+## NB - this is fornlearning purposes only, definitely do not use this to trade with real money
 
 ## Details
 A simple trading bot, that makes use of:
